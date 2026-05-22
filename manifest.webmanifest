@@ -1,7 +1,7 @@
 {
   "name": "Beat Counter",
   "short_name": "BPM",
-  "description": "Simple BPM meter for DJ sets — tap or listen.",
+  "description": "Simple BPM counter",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
