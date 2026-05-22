@@ -134,7 +134,6 @@ function pulse() {
     flashEl.style.transition = '';
     flashEl.style.opacity = '0';
   }
-  if (navigator.vibrate) { try { navigator.vibrate(12); } catch (_) {} }
 }
 
 function setLocked(next) {
