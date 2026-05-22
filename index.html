@@ -15,13 +15,56 @@
 </head>
 <body>
   <main id="app">
-    <div id="bpm" class="bpm idle">--</div>
-    <div id="status" class="status">Tap Start to listen</div>
+    <!-- whole-screen tap layer; sits below the controls but above background -->
+    <button id="taplayer" class="taplayer" aria-label="Tap to the beat"></button>
 
-    <div class="controls">
-      <button id="start" class="primary" type="button">Start</button>
-      <button id="mode" class="secondary" type="button" aria-pressed="false">Mode: Mic</button>
-      <button id="tap" class="tap hidden" type="button">TAP</button>
+    <div id="hud-top" class="hud hud-top">
+      <div class="seg" role="tablist" aria-label="Input mode">
+        <button class="seg-btn" data-mode="mic"  type="button" role="tab">Mic</button>
+        <button class="seg-btn active" data-mode="both" type="button" role="tab">Both</button>
+        <button class="seg-btn" data-mode="tap"  type="button" role="tab">Tap</button>
+      </div>
+      <button id="settings-btn" class="icon-btn" aria-label="Settings" type="button">⚙︎</button>
+    </div>
+
+    <div id="bpm-wrap" class="bpm-wrap">
+      <div id="bpm" class="bpm idle">--</div>
+      <div id="stability" class="stability" aria-hidden="true"><span></span></div>
+    </div>
+
+    <div id="status" class="status"></div>
+
+    <div id="hud-bottom" class="hud hud-bottom">
+      <button id="stop" class="icon-btn hidden" aria-label="Stop" type="button">■</button>
+    </div>
+
+    <div id="drawer" class="drawer hidden" role="dialog" aria-label="Settings">
+      <div class="drawer-inner">
+        <div class="drawer-row">
+          <label for="opt-sens">Mic sensitivity</label>
+          <input id="opt-sens" type="range" min="0.5" max="3" step="0.1" value="1.0" />
+          <span id="opt-sens-val" class="val">1.0</span>
+        </div>
+        <div class="drawer-row">
+          <label for="opt-min">BPM min</label>
+          <input id="opt-min" type="range" min="40" max="120" step="1" value="70" />
+          <span id="opt-min-val" class="val">70</span>
+        </div>
+        <div class="drawer-row">
+          <label for="opt-max">BPM max</label>
+          <input id="opt-max" type="range" min="120" max="220" step="1" value="180" />
+          <span id="opt-max-val" class="val">180</span>
+        </div>
+        <div class="drawer-row">
+          <label for="opt-agg">PLL aggressiveness</label>
+          <input id="opt-agg" type="range" min="0.3" max="2" step="0.1" value="1.0" />
+          <span id="opt-agg-val" class="val">1.0</span>
+        </div>
+        <div class="drawer-actions">
+          <button id="opt-reset"  class="ghost" type="button">Reset tracker</button>
+          <button id="opt-close"  class="primary" type="button">Done</button>
+        </div>
+      </div>
     </div>
   </main>
   <script src="app.js"></script>

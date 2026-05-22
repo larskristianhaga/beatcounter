@@ -2,15 +2,16 @@
   --bg: #000;
   --fg: #fff;
   --dim: #555;
+  --dimmer: #2a2a2a;
   --accent: #ff3860;
   --ok: #1fd16b;
+  --panel: #0b0b0b;
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
 html, body {
-  margin: 0;
-  padding: 0;
+  margin: 0; padding: 0;
   height: 100%;
   background: var(--bg);
   color: var(--fg);
@@ -18,100 +19,183 @@ html, body {
   overscroll-behavior: none;
   user-select: none;
   -webkit-user-select: none;
+  touch-action: manipulation;
 }
 
 #app {
   position: fixed;
   inset: 0;
+  overflow: hidden;
+}
+
+/* Full-screen invisible tap target */
+.taplayer {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  z-index: 1;
+  /* gets disabled (pointer-events: none) when tap input is off */
+}
+.taplayer:active {
+  background: rgba(255, 56, 96, 0.06);
+}
+.taplayer.off { pointer-events: none; }
+
+/* HUD bars sit above the tap layer */
+.hud {
+  position: absolute;
+  left: 0; right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  z-index: 3;
+  pointer-events: none; /* children re-enable */
+}
+.hud > * { pointer-events: auto; }
+.hud-top    { top:    max(env(safe-area-inset-top), 8px); }
+.hud-bottom { bottom: max(env(safe-area-inset-bottom), 8px); justify-content: center; }
+
+.seg {
+  display: inline-flex;
+  background: #111;
+  border: 1px solid #1f1f1f;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.seg-btn {
+  background: transparent;
+  color: #888;
+  border: 0;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  font-family: inherit;
+}
+.seg-btn.active { background: var(--accent); color: #fff; }
+
+.icon-btn {
+  background: #111;
+  border: 1px solid #1f1f1f;
+  color: #aaa;
+  border-radius: 999px;
+  width: 40px; height: 40px;
+  font-size: 18px;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.icon-btn:active { background: #1a1a1a; }
+
+.bpm-wrap {
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  padding: max(env(safe-area-inset-top), 16px) 16px max(env(safe-area-inset-bottom), 16px);
+  justify-content: center;
+  z-index: 2;
+  pointer-events: none;
+  padding: 64px 16px;
 }
 
 .bpm {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
   font-variant-numeric: tabular-nums;
   font-weight: 700;
   font-size: 45vh;
   line-height: 1;
   letter-spacing: -0.04em;
   color: var(--fg);
-  transition: color 120ms linear, transform 80ms ease-out;
+  transition: color 200ms linear, transform 80ms ease-out, opacity 200ms linear;
+  will-change: transform;
 }
+.bpm.idle { color: var(--dim); }
+.bpm.pulse { transform: scale(1.04); }
 
-.bpm.idle      { color: var(--dim); }
-.bpm.low-conf  { color: #888; }
-.bpm.ok        { color: var(--fg); }
-.bpm.pulse     { transform: scale(1.04); }
+.stability {
+  margin-top: 18px;
+  width: min(60vw, 280px);
+  height: 4px;
+  background: #181818;
+  border-radius: 2px;
+  overflow: hidden;
+}
+.stability > span {
+  display: block;
+  height: 100%;
+  width: 0%;
+  background: var(--accent);
+  transition: width 180ms ease-out, background-color 200ms;
+}
 
 .status {
   position: absolute;
-  top: max(env(safe-area-inset-top), 12px);
+  bottom: calc(max(env(safe-area-inset-bottom), 8px) + 56px);
   left: 0; right: 0;
   text-align: center;
-  font-size: 14px;
+  font-size: 13px;
   color: var(--dim);
   letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.controls {
-  display: flex;
-  gap: 12px;
-  width: 100%;
-  justify-content: center;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-button {
-  font-family: inherit;
-  font-size: 16px;
-  font-weight: 600;
-  border: 1px solid #222;
-  background: #111;
-  color: var(--fg);
-  padding: 14px 22px;
-  border-radius: 999px;
-  min-width: 120px;
-  touch-action: manipulation;
-}
-
-button:active { background: #1a1a1a; }
-
-button.primary {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
-}
-
-button.primary.active {
-  background: #111;
-  border-color: #333;
-  color: var(--fg);
-}
-
-button.tap {
-  width: 100%;
-  min-height: 120px;
-  font-size: 32px;
-  letter-spacing: 0.2em;
-  background: #111;
-  border: 2px solid #333;
-}
-
-button.tap:active {
-  background: #222;
-  border-color: var(--accent);
+  pointer-events: none;
+  z-index: 2;
+  padding: 0 20px;
 }
 
 .hidden { display: none !important; }
+
+/* Drawer */
+.drawer {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 10;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 16px;
+}
+.drawer-inner {
+  width: 100%;
+  max-width: 480px;
+  background: var(--panel);
+  border: 1px solid #1f1f1f;
+  border-radius: 18px;
+  padding: 18px;
+  margin-top: max(env(safe-area-inset-top), 12px);
+}
+.drawer-row {
+  display: grid;
+  grid-template-columns: 1fr 2fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #181818;
+  font-size: 14px;
+}
+.drawer-row:last-of-type { border-bottom: 0; }
+.drawer-row label { color: #bbb; }
+.drawer-row .val  { color: #888; font-variant-numeric: tabular-nums; min-width: 36px; text-align: right; }
+.drawer-row input[type=range] { accent-color: var(--accent); width: 100%; }
+.drawer-actions {
+  display: flex; justify-content: space-between; gap: 12px; padding-top: 14px;
+}
+.drawer-actions button {
+  flex: 1;
+  font-family: inherit; font-size: 15px; font-weight: 600;
+  border: 1px solid #222;
+  background: #111; color: var(--fg);
+  padding: 12px 18px; border-radius: 999px;
+}
+.drawer-actions .primary { background: var(--accent); border-color: var(--accent); }
+.drawer-actions .ghost   { background: transparent; color: #aaa; }
 
 @media (max-width: 380px) {
   .bpm { font-size: 38vh; }

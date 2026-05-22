@@ -1,4 +1,4 @@
-const CACHE = 'beatcounter-v1';
+const CACHE = 'beatcounter-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -26,12 +26,23 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
+  // Network-first for HTML so deploys are picked up quickly
+  if (req.mode === 'navigate' || (req.headers.get('accept') || '').includes('text/html')) {
+    event.respondWith(
+      fetch(req).then((res) => {
+        const copy = res.clone();
+        caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});
+        return res;
+      }).catch(() => caches.match(req).then((c) => c || caches.match('./index.html')))
+    );
+    return;
+  }
+  // Cache-first for static assets
   event.respondWith(
     caches.match(req).then((cached) => cached || fetch(req).then((res) => {
-      // Runtime-cache successful same-origin GETs
       if (res && res.status === 200 && new URL(req.url).origin === self.location.origin) {
         const copy = res.clone();
-        caches.open(CACHE).then((c) => c.put(req, copy));
+        caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});
       }
       return res;
     }).catch(() => cached))
