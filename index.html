@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+<meta name="theme-color" content="#000000" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="BPM" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="apple-touch-icon" href="icons/icon-192.png" />
+<link rel="icon" href="icons/icon-192.png" />
+<title>BPM</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main id="app">
+    <div id="bpm" class="bpm idle">--</div>
+    <div id="status" class="status">Tap Start to listen</div>
+
+    <div class="controls">
+      <button id="start" class="primary" type="button">Start</button>
+      <button id="mode" class="secondary" type="button" aria-pressed="false">Mode: Mic</button>
+      <button id="tap" class="tap hidden" type="button">TAP</button>
+    </div>
+  </main>
+  <script src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js').catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>

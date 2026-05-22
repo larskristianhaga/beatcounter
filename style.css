@@ -1,0 +1,118 @@
+:root {
+  --bg: #000;
+  --fg: #fff;
+  --dim: #555;
+  --accent: #ff3860;
+  --ok: #1fd16b;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  overscroll-behavior: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#app {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: max(env(safe-area-inset-top), 16px) 16px max(env(safe-area-inset-bottom), 16px);
+}
+
+.bpm {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 45vh;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--fg);
+  transition: color 120ms linear, transform 80ms ease-out;
+}
+
+.bpm.idle      { color: var(--dim); }
+.bpm.low-conf  { color: #888; }
+.bpm.ok        { color: var(--fg); }
+.bpm.pulse     { transform: scale(1.04); }
+
+.status {
+  position: absolute;
+  top: max(env(safe-area-inset-top), 12px);
+  left: 0; right: 0;
+  text-align: center;
+  font-size: 14px;
+  color: var(--dim);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.controls {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+button {
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  border: 1px solid #222;
+  background: #111;
+  color: var(--fg);
+  padding: 14px 22px;
+  border-radius: 999px;
+  min-width: 120px;
+  touch-action: manipulation;
+}
+
+button:active { background: #1a1a1a; }
+
+button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+button.primary.active {
+  background: #111;
+  border-color: #333;
+  color: var(--fg);
+}
+
+button.tap {
+  width: 100%;
+  min-height: 120px;
+  font-size: 32px;
+  letter-spacing: 0.2em;
+  background: #111;
+  border: 2px solid #333;
+}
+
+button.tap:active {
+  background: #222;
+  border-color: var(--accent);
+}
+
+.hidden { display: none !important; }
+
+@media (max-width: 380px) {
+  .bpm { font-size: 38vh; }
+}
