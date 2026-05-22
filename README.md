@@ -20,35 +20,7 @@ this one uses Node:
 ```sh
 cd beatcounter
 npx serve .            # or: npx http-server .
-# open the printed http://localhost:… URL
 ```
-
-To test on your phone over your LAN, you need **HTTPS** (iOS Safari will
-refuse mic access otherwise). Easiest:
-
-- Deploy to GitHub Pages (HTTPS for free — see below), **or**
-- Use [`mkcert`](https://github.com/FiloSottile/mkcert) +
-  [`http-server`](https://www.npmjs.com/package/http-server):
-  ```sh
-  mkcert -install
-  mkcert localhost 192.168.x.x
-  npx http-server -S -C localhost+1.pem -K localhost+1-key.pem
-  ```
-
-## Deploy to GitHub Pages
-
-1. `git init && git add . && git commit -m "init"`
-2. Create a repo on GitHub and `git push -u origin main`
-3. In repo **Settings → Pages**, set Source = `Deploy from a branch`,
-   Branch = `main`, Folder = `/ (root)`.
-4. Open the resulting `https://<you>.github.io/<repo>/` URL on your phone.
-
-## Install on iPhone
-
-1. Open the deployed URL in **Safari** (must be Safari, not Chrome).
-2. Tap the **Share** button → **Add to Home Screen**.
-3. Launch from the new home-screen icon — it opens full-screen, no browser
-   chrome.
 
 ## How mic detection works
 
@@ -64,17 +36,4 @@ refuse mic access otherwise). Easiest:
 
 - Phone mics clip on club sub-bass. If the number looks wrong, switch to
   **Tap mode** — it's the reliable fallback.
-- iOS Safari doesn't support `navigator.vibrate`, so haptic feedback is
-  Android-only. iOS gets a visual pulse instead.
-- BPM is clamped to a sane 60–200 range.
-
-## Files
-
-```
-index.html            Markup + meta for PWA / iOS
-style.css             Dark full-screen UI, huge BPM number
-app.js                Mic capture, beat detection, BPM math, controls
-manifest.webmanifest  PWA manifest
-service-worker.js     Offline cache for static assets
-icons/                Home-screen icons (192, 512)
-```
+- BPM is clamped to a 60–200 range.
