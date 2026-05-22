@@ -28,6 +28,21 @@ html, body {
   overflow: hidden;
 }
 
+/* Beat-synced flash overlay. JS sets opacity briefly on each beat;
+   CSS transitions it back to 0 for a smooth fade. */
+.flash {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: var(--accent);
+  opacity: 0;
+  transition: opacity 280ms ease-out;
+  pointer-events: none;
+}
+.flash.locked {
+  background: var(--ok);
+}
+
 /* Full-screen invisible tap target */
 .taplayer {
   position: absolute;
@@ -112,11 +127,31 @@ html, body {
   line-height: 1;
   letter-spacing: -0.04em;
   color: var(--fg);
-  transition: color 200ms linear, transform 80ms ease-out, opacity 200ms linear;
+  transition: color 200ms linear, transform 80ms ease-out, opacity 200ms linear, text-shadow 200ms linear;
   will-change: transform;
 }
 .bpm.idle { color: var(--dim); }
 .bpm.pulse { transform: scale(1.04); }
+.bpm.locked {
+  color: var(--ok);
+  text-shadow: 0 0 24px rgba(31, 209, 107, 0.35);
+}
+
+.lock-badge {
+  position: absolute;
+  top: 18%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 13px;
+  letter-spacing: 0.3em;
+  font-weight: 700;
+  color: var(--ok);
+  padding: 4px 10px;
+  border: 1px solid var(--ok);
+  border-radius: 999px;
+  background: rgba(31, 209, 107, 0.08);
+  pointer-events: none;
+}
 
 .stability {
   margin-top: 18px;

@@ -22,8 +22,11 @@ const optSens     = document.getElementById('opt-sens');
 const optMin      = document.getElementById('opt-min');
 const optMax      = document.getElementById('opt-max');
 const optAgg      = document.getElementById('opt-agg');
+const optFlash    = document.getElementById('opt-flash');
 const optReset    = document.getElementById('opt-reset');
 const optClose    = document.getElementById('opt-close');
+const flashEl     = document.getElementById('flash');
+const lockBadge   = document.getElementById('lock');
 
 // ---------- Settings (persisted) ----------
 const SETTINGS_KEY = 'beatcounter.v2.settings';
@@ -32,6 +35,7 @@ const DEFAULTS = {
   bpmMin: 70,
   bpmMax: 180,
   aggressiveness: 1.0,// multiplier on PLL gains
+  flash: true,        // full-screen beat-synced flash overlay
 };
 let settings = Object.assign({}, DEFAULTS, loadSettings());
 function loadSettings() {
@@ -53,6 +57,10 @@ const PLL_BETA       = 0.25;     // phase  gain (per unit confidence)
 const STABILITY_TC   = 0.12;     // EMA factor for stability metric
 const PERIOD_SAMPLES = 12;       // for slow display median
 const STALE_MS       = 3000;     // no events for this long -> reset
+const LOCK_TIGHT_FRAC= 0.15;     // |e|/period below this counts as a "tight" hit
+const LOCK_STABILITY = 0.6;      // stability EMA threshold for lock
+const LOCK_HITS_NEED = 8;        // consecutive tight hits to lock
+const FLASH_PEAK     = 0.18;     // overlay opacity at peak of each beat flash
 
 // ---------- State ----------
 let mode = 'both';               // 'mic' | 'both' | 'tap'
@@ -68,6 +76,10 @@ let stability    = 0;
 let periodSamples = [];          // recent period samples for slow display median
 let recentEvents = [];           // recent event timestamps (for octave check)
 let displayedBpm = null;
+
+// Lock state
+let tightHits = 0;               // consecutive PLL events with tight error
+let locked    = false;
 
 // Audio state
 let audioCtx, micStream, sourceNode, filterNode, analyser, audioBuf;
@@ -111,7 +123,25 @@ function updateStabilityBar() {
 function pulse() {
   bpmEl.classList.add('pulse');
   setTimeout(() => bpmEl.classList.remove('pulse'), 70);
+  if (settings.flash) {
+    // Tag overlay colour by lock state, then snap opacity high and let CSS fade it
+    flashEl.classList.toggle('locked', locked);
+    flashEl.style.transition = 'none';
+    flashEl.style.opacity = String(FLASH_PEAK);
+    // Force reflow so the next style change animates
+    // eslint-disable-next-line no-unused-expressions
+    flashEl.offsetHeight;
+    flashEl.style.transition = '';
+    flashEl.style.opacity = '0';
+  }
   if (navigator.vibrate) { try { navigator.vibrate(12); } catch (_) {} }
+}
+
+function setLocked(next) {
+  if (next === locked) return;
+  locked = next;
+  bpmEl.classList.toggle('locked', locked);
+  lockBadge.classList.toggle('hidden', !locked);
 }
 
 // ---------- Event bus / PLL ----------
@@ -128,6 +158,8 @@ function registerBeatEvent(t, conf, source) {
     periodSamples = []; recentEvents = [];
     stability = 0;
     displayedBpm = null;
+    tightHits = 0;
+    setLocked(false);
     setBpm(null);
   }
   lastEventAt = t;
@@ -186,6 +218,18 @@ function registerBeatEvent(t, conf, source) {
   const agreement = 1 - Math.min(1, (2 * Math.abs(e)) / period);
   stability = (1 - STABILITY_TC) * stability + STABILITY_TC * agreement * conf;
 
+  // Lock state machine: count tight hits, lock once we've had enough in a row.
+  const errFrac = Math.abs(e) / period;
+  if (errFrac < LOCK_TIGHT_FRAC && stability >= LOCK_STABILITY) {
+    tightHits = Math.min(LOCK_HITS_NEED + 4, tightHits + 1);
+    if (tightHits >= LOCK_HITS_NEED) setLocked(true);
+  } else if (errFrac > 0.25 || stability < 0.35) {
+    tightHits = Math.max(0, tightHits - 2);
+    if (tightHits <= LOCK_HITS_NEED / 2) setLocked(false);
+  } else {
+    tightHits = Math.max(0, tightHits - 1);
+  }
+
   // Octave correction (band-snap with hysteresis)
   octaveCheck();
 
@@ -236,6 +280,9 @@ function octaveCheck() {
     // Mild stability reset so display isn't overconfident immediately
     stability *= 0.5;
     periodSamples = [period];
+    // Octave change invalidates the lock
+    tightHits = 0;
+    setLocked(false);
   }
 }
 
@@ -247,11 +294,14 @@ setInterval(() => {
     period = null; nextBeat = null;
     periodSamples = []; recentEvents = [];
     stability = 0; displayedBpm = null;
+    tightHits = 0;
+    setLocked(false);
     setBpm(null);
     updateStabilityBar();
   } else if (now - lastEventAt > 1500) {
     // decay stability quickly when events stop arriving
     stability *= 0.92;
+    if (stability < 0.35) setLocked(false);
     updateStabilityBar();
   }
 }, 400);
@@ -467,6 +517,7 @@ function refreshSettingsUi() {
   optMin.value  = settings.bpmMin;
   optMax.value  = settings.bpmMax;
   optAgg.value  = settings.aggressiveness;
+  optFlash.checked = !!settings.flash;
   document.getElementById('opt-sens-val').textContent = (+settings.sensitivity).toFixed(1);
   document.getElementById('opt-min-val').textContent  = String(settings.bpmMin);
   document.getElementById('opt-max-val').textContent  = String(settings.bpmMax);
@@ -502,10 +553,19 @@ optMax.addEventListener('input', () => {
   saveSettings(); refreshSettingsUi();
 });
 
+optFlash.addEventListener('change', () => {
+  settings.flash = optFlash.checked;
+  saveSettings();
+  // Hide overlay immediately if turned off mid-pulse
+  if (!settings.flash) flashEl.style.opacity = '0';
+});
+
 optReset.addEventListener('click', () => {
   period = null; nextBeat = null;
   periodSamples = []; recentEvents = [];
   stability = 0; displayedBpm = null;
+  tightHits = 0;
+  setLocked(false);
   setBpm(null); updateStabilityBar();
   setStatus('Tracker reset');
 });

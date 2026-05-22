@@ -15,6 +15,9 @@
 </head>
 <body>
   <main id="app">
+    <!-- beat-synced flash overlay; opacity bumped in JS on each beat -->
+    <div id="flash" class="flash"></div>
+
     <!-- whole-screen tap layer; sits below the controls but above background -->
     <button id="taplayer" class="taplayer" aria-label="Tap to the beat"></button>
 
@@ -28,6 +31,7 @@
     </div>
 
     <div id="bpm-wrap" class="bpm-wrap">
+      <div id="lock" class="lock-badge hidden">LOCK</div>
       <div id="bpm" class="bpm idle">--</div>
       <div id="stability" class="stability" aria-hidden="true"><span></span></div>
     </div>
@@ -59,6 +63,11 @@
           <label for="opt-agg">PLL aggressiveness</label>
           <input id="opt-agg" type="range" min="0.3" max="2" step="0.1" value="1.0" />
           <span id="opt-agg-val" class="val">1.0</span>
+        </div>
+        <div class="drawer-row">
+          <label for="opt-flash">Beat flash</label>
+          <input id="opt-flash" type="checkbox" checked />
+          <span class="val"></span>
         </div>
         <div class="drawer-actions">
           <button id="opt-reset"  class="ghost" type="button">Reset tracker</button>
