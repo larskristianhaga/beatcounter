@@ -14,12 +14,13 @@ hit **Start**, and watch the number.
 ## Run locally
 
 Mic access requires either `localhost` or HTTPS, so a static file server
-on `localhost` is enough for desktop testing:
+on `localhost` is enough for desktop testing. Any static server works —
+this one uses Node:
 
 ```sh
 cd beatcounter
-python3 -m http.server 8000
-# open http://localhost:8000
+npx serve .            # or: npx http-server .
+# open the printed http://localhost:… URL
 ```
 
 To test on your phone over your LAN, you need **HTTPS** (iOS Safari will
